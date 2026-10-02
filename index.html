@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>شخصية 3D للعبة موبايل 🎮</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#0f172a; font-family:'Segoe UI',Tahoma,Arial,sans-serif; touch-action:none; }
+  #app { position:fixed; inset:0; }
+  canvas { display:block; }
+  #hud {
+    position:fixed; top:0; right:0; left:0; padding:10px 12px;
+    display:flex; justify-content:space-between; align-items:center;
+    pointer-events:none; z-index:10;
+  }
+  .pill {
+    background:rgba(0,0,0,.55); color:#fff; backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.15); border-radius:999px;
+    padding:6px 14px; font-size:13px;
+  }
+  #title { font-weight:800; font-size:15px; }
+  #fps { font-variant-numeric:tabular-nums; direction:ltr; }
+  #panel {
+    position:fixed; bottom:calc(12px + env(safe-area-inset-bottom)); right:12px; left:12px;
+    display:flex; justify-content:space-between; align-items:flex-end; z-index:10; gap:10px;
+  }
+  #joystick {
+    width:124px; height:124px; border-radius:50%;
+    background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.25);
+    position:relative; touch-action:none; user-select:none;
+  }
+  #stick {
+    width:56px; height:56px; border-radius:50%; background:#38bdf8;
+    position:absolute; left:34px; top:34px; box-shadow:0 4px 16px rgba(56,189,248,.5);
+  }
+  #actions { display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
+  .row { display:flex; gap:8px; }
+  button {
+    pointer-events:auto; border:none; border-radius:14px; font-weight:800;
+    color:#fff; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+    padding:12px 16px; font-size:14px; backdrop-filter:blur(8px); cursor:pointer; min-width:64px;
+  }
+  button.active { background:#38bdf8; border-color:#38bdf8; color:#06202e; }
+  button.jump { background:#f59e0b; border-color:#f59e0b; color:#2a1500; font-size:16px; }
+  #anims { position:fixed; top:56px; right:12px; display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; z-index:10; max-width:min(70vw,340px); }
+  #anims button { padding:8px 12px; font-size:12px; min-width:0; }
+  #colors { position:fixed; top:56px; left:12px; display:flex; flex-direction:column; gap:8px; z-index:10; }
+  @media (max-width:480px) {
+    #anims { max-width:calc(100vw - 130px); }
+    #help { display:none; }
+  }
+  .swatch { width:32px; height:32px; border-radius:50%; border:2px solid #fff; cursor:pointer; pointer-events:auto; }
+  #loading {
+    position:fixed; inset:0; display:flex; flex-direction:column; gap:12px;
+    align-items:center; justify-content:center; background:#0f172a; color:#fff; z-index:50;
+  }
+  .spinner { width:44px; height:44px; border:4px solid rgba(255,255,255,.2); border-top-color:#38bdf8; border-radius:50%; animation:spin 1s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  #attr { position:fixed; bottom:2px; left:8px; color:rgba(255,255,255,.5); font-size:10px; z-index:10; direction:ltr; }
+  #help { position:fixed; bottom:calc(150px + env(safe-area-inset-bottom)); right:0; left:0; text-align:center; color:#fff; opacity:.7; font-size:12px; z-index:9; pointer-events:none; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="loading"><div class="spinner"></div><div>جاري تحميل الشخصية... 🎮</div></div>
+<div id="hud">
+  <div class="pill" id="title">🕹️ شخصية Low-Poly للموبايل</div>
+  <div class="pill" id="fps">60 FPS • 1.5K tris</div>
+</div>
+<div id="anims">
+  <button data-anim="Idle" class="active">🧍 واقف</button>
+  <button data-anim="Walk">🚶 ماشي</button>
+  <button data-anim="Run">🏃 يجري</button>
+  <button data-anim="Jump">🦘 ينط</button>
+  <button data-anim="Loose">💃 احتفال</button>
+</div>
+<div id="colors">
+  <div class="swatch" data-c="#38bdf8" style="background:#38bdf8"></div>
+  <div class="swatch" data-c="#f43f5e" style="background:#f43f5e"></div>
+  <div class="swatch" data-c="#22c55e" style="background:#22c55e"></div>
+  <div class="swatch" data-c="#f59e0b" style="background:#f59e0b"></div>
+  <div class="swatch" data-c="#a78bfa" style="background:#a78bfa"></div>
+</div>
+<div id="help">اسحب يمين الشاشة للتدوير • الجوستيك الشمال للحركة • زرار ⬆️ للنط</div>
+<div id="panel">
+  <div id="joystick"><div id="stick"></div></div>
+  <div id="actions">
+    <div class="row"><button class="jump" id="btnJump">⬆️</button></div>
+    <div class="row"><button id="btnRun">🏃 جري</button></div>
+  </div>
+</div>
+<div id="attr">Character: joaobaltieri (CC-BY) via Sketchfab</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const isMobile = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) || ('ontouchstart' in window);
+const app = document.getElementById('app');
+const loading = document.getElementById('loading');
+const fpsEl = document.getElementById('fps');
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0f172a);
+scene.fog = new THREE.Fog(0x0f172a, 22, 55);
+
+const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 100);
+camera.position.set(0, 2.0, 5.2);
+
+const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference:'high-performance' });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.75 : 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+app.appendChild(renderer.domElement);
+
+// إضاءة خفيفة للموبايل (بدون شادو تقيل)
+scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 1.1));
+const sun = new THREE.DirectionalLight(0xffffff, 1.4);
+sun.position.set(3, 6, 4);
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0x38bdf8, 0.4);
+fill.position.set(-4, 3, -3);
+scene.add(fill);
+
+// أرضية للعبة
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(9, 40),
+  new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 1 })
+);
+ground.rotation.x = -Math.PI/2;
+scene.add(ground);
+const grid = new THREE.GridHelper(12, 12, 0x38bdf8, 0x334155);
+grid.position.y = 0.01;
+grid.material.transparent = true; grid.material.opacity = 0.22;
+scene.add(grid);
+// حلقة تزين
+const ring = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.05, 12, 60), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+ring.rotation.x = Math.PI/2; ring.position.y = 0.05;
+scene.add(ring);
+
+let model, mixer, clips = {}, current = null;
+let vel = new THREE.Vector3(), pos = new THREE.Vector3();
+let camYaw = 0.6, camPitch = 0.24, camDist = 3.6;
+let lastInput = performance.now();
+function touchInput(){ lastInput = performance.now(); }
+let joy = { x:0, y:0, active:false }, wantRun = false, jumpV = 0, grounded = true;
+
+new GLTFLoader().loadAsync('./public/models/toon-character.glb').then(gltf => {
+  model = gltf.scene;
+  // تظبيط الحجم والوضع
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  const scale = 1.7 / Math.max(size.y, 0.001);
+  model.scale.setScalar(scale);
+  box.setFromObject(model);
+  model.position.y -= box.min.y;
+  scene.add(model);
+
+  mixer = new THREE.AnimationMixer(model);
+  gltf.animations.forEach(a => { clips[a.name] = mixer.clipAction(a); });
+  playAnim('Idle');
+  loading.style.display = 'none';
+  document.body.dataset.compareState = 'ready';
+}).catch(e => {
+  loading.innerHTML = 'فشل تحميل الموديل 😢<br><small>'+e.message+'</small>';
+  console.error(e);
+});
+
+function playAnim(name) {
+  if (!clips[name] || current === name) return;
+  if (current) clips[current].fadeOut(0.2);
+  current = name;
+  clips[name].reset().fadeIn(0.2).play();
+  document.querySelectorAll('#anims button').forEach(b => b.classList.toggle('active', b.dataset.anim === name));
+}
+document.querySelectorAll('#anims button').forEach(b => b.onclick = () => playAnim(b.dataset.anim));
+
+// تلوين لمسات اللعبة (الحلقة + الإضاءة + الجوستيك) بلون الفريق
+document.querySelectorAll('.swatch').forEach(s => s.onclick = () => {
+  ring.material.color.set(s.dataset.c);
+  fill.color.set(s.dataset.c);
+  grid.material.color.set(new THREE.Color(s.dataset.c));
+  document.getElementById('stick').style.background = s.dataset.c;
+});
+
+// --- تحكم تاتش: جوستيك + تدوير كاميرا + زرار نط ---
+const joyEl = document.getElementById('joystick'), stick = document.getElementById('stick');
+let joyId = null, lookId = null, lx = 0, ly = 0;
+function joyMove(t) {
+  const r = joyEl.getBoundingClientRect();
+  let dx = t.clientX - (r.left + r.width/2), dy = t.clientY - (r.top + r.height/2);
+  const max = 44, len = Math.hypot(dx, dy);
+  if (len > max) { dx *= max/len; dy *= max/len; }
+  stick.style.transform = `translate(${dx}px,${dy}px)`;
+  joy.x = dx/max; joy.y = dy/max; joy.active = len > 8;
+}
+joyEl.addEventListener('touchstart', e => { touchInput(); joyId = e.changedTouches[0].identifier; joyMove(e.changedTouches[0]); e.preventDefault(); }, {passive:false});
+addEventListener('touchmove', e => {
+  for (const t of e.changedTouches) {
+    if (t.identifier === joyId) joyMove(t);
+    if (t.identifier === lookId) { camYaw -= (t.clientX-lx)*0.005; camPitch = THREE.MathUtils.clamp(camPitch + (t.clientY-ly)*0.003, 0.05, 1.1); lx=t.clientX; ly=t.clientY; }
+  }
+}, {passive:true});
+addEventListener('touchend', e => {
+  for (const t of e.changedTouches) {
+    if (t.identifier === joyId) { joyId=null; joy.x=joy.y=0; joy.active=false; stick.style.transform=''; }
+    if (t.identifier === lookId) lookId=null;
+  }
+});
+renderer.domElement.addEventListener('touchstart', e => {
+  touchInput();
+  const t = e.changedTouches[0];
+  if (t.clientX > innerWidth*0.35 && lookId===null) { lookId=t.identifier; lx=t.clientX; ly=t.clientY; }
+}, {passive:true});
+// ماوس للديسكتوب
+let drag=false, px=0, py=0;
+renderer.domElement.addEventListener('mousedown', e=>{touchInput();drag=true;px=e.clientX;py=e.clientY;});
+addEventListener('mousemove', e=>{ if(!drag)return; camYaw-=(e.clientX-px)*0.005; camPitch=THREE.MathUtils.clamp(camPitch+(e.clientY-py)*0.003,0.05,1.1); px=e.clientX; py=e.clientY; });
+addEventListener('mouseup', ()=>drag=false);
+// كيبورد
+const keys={};
+addEventListener('keydown', e=>{ keys[e.code]=true; if(e.code==='Space') doJump(); });
+addEventListener('keyup', e=>keys[e.code]=false);
+
+function doJump(){ if(grounded){ jumpV=4.2; grounded=false; playAnim('Jump'); setTimeout(()=>{ if(!joy.active) playAnim('Idle'); }, 700); } }
+document.getElementById('btnJump').onclick = doJump;
+document.getElementById('btnRun').onclick = e => { wantRun=!wantRun; e.target.classList.toggle('active', wantRun); };
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// Loop اللعبة
+const clock = new THREE.Clock();
+let frames=0, lastFps=performance.now();
+const fwd = new THREE.Vector3(), rgt = new THREE.Vector3();
+function tick() {
+  requestAnimationFrame(tick);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  if (mixer) mixer.update(dt);
+  // دوران تلقائي للعرض لما مفيش لمس (showcase)
+  if (!joy.active && lookId===null && !drag && performance.now()-lastInput>3500) camYaw += dt*0.35;
+
+  // حركة من الجوستيك أو الكيبورد
+  let ix = joy.x, iz = joy.y;
+  if (keys.KeyW||keys.ArrowUp) iz -= 1; if (keys.KeyS||keys.ArrowDown) iz += 1;
+  if (keys.KeyA||keys.ArrowLeft) ix -= 1; if (keys.KeyD||keys.ArrowRight) ix += 1;
+  const mag = Math.min(Math.hypot(ix, iz), 1);
+  const speed = (wantRun||mag>0.85) ? 4.2 : 2.2;
+
+  if (model) {
+    fwd.set(-Math.sin(camYaw),0,-Math.cos(camYaw)); rgt.set(-fwd.z,0,fwd.x);
+    vel.set(0,0,0).addScaledVector(fwd,-iz).addScaledVector(rgt,ix);
+    if (vel.lengthSq()>0.001) {
+      vel.normalize().multiplyScalar(speed*mag||speed*(mag||0.001));
+      pos.addScaledVector(vel, dt);
+      if (pos.length() > 7.5) pos.setLength(7.5);
+      model.position.x = pos.x; model.position.z = pos.z;
+      const targetRot = Math.atan2(vel.x, vel.z);
+      let d = targetRot - model.rotation.y;
+      while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI;
+      model.rotation.y += d * Math.min(1, dt*10);
+      if (grounded) playAnim(mag>0.85||wantRun ? 'Run' : mag>0.05 ? 'Walk' : 'Idle');
+    } else if (grounded && !Object.values(clips).some(a=>a.isRunning()&&false)) {
+      // لو واقف ومفيش حركة، ارجع Idle (إلا لو المستخدم مختار أنيميشن يدوي قريب)
+    }
+    // نط وفيزيا بسيطة
+    if (!grounded) { jumpV -= 10*dt; model.position.y += jumpV*dt; if (model.position.y<=0){model.position.y=0;grounded=true;jumpV=0;} }
+    // كاميرا تالت شخص تتبع اللاعب
+    const cx = model.position.x + Math.sin(camYaw)*Math.cos(camPitch)*camDist;
+    const cz = model.position.z + Math.cos(camYaw)*Math.cos(camPitch)*camDist;
+    const cy = 1.1 + Math.sin(camPitch)*camDist;
+    camera.position.lerp(new THREE.Vector3(cx,cy,cz), 0.12);
+    camera.lookAt(model.position.x, 0.9, model.position.z);
+  }
+  renderer.render(scene, camera);
+  frames++;
+  const now = performance.now();
+  if (now-lastFps>500){ fpsEl.textContent = `${Math.round(frames*1000/(now-lastFps))} FPS • 1.5K tris${isMobile?' • 📱':''}`; frames=0; lastFps=now; }
+}
+tick();
+</script>
+</body>
+</html>

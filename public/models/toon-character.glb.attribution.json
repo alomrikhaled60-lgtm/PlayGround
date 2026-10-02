@@ -1,0 +1,73 @@
+{
+  "uid": "f774333ab1b6400288a069b12d582555",
+  "name": "Lowpoly Toon Characters (Free Demo + Animations)",
+  "author": "joaobaltieri",
+  "authorUrl": "https://sketchfab.com/joaobaltieri",
+  "license": "CC Attribution",
+  "licenseUrl": null,
+  "modelUrl": "https://sketchfab.com/3d-models/none-f774333ab1b6400288a069b12d582555",
+  "thumbnailUrl": "https://media.sketchfab.com/models/f774333ab1b6400288a069b12d582555/thumbnails/8ad1fb27d6d04cd5a4d53cd67aa23ca2/abed89cdecdb41f8b5ef4047cf7f8629.jpeg",
+  "glbBytes": 474712,
+  "faceCount": 1564,
+  "vertexCount": 1068,
+  "textureCount": 1,
+  "textureMaxResolution": 256,
+  "animationCount": 5,
+  "animations": [
+    {
+      "uid": "b9040452882d420199f0e87d58efc9cb",
+      "name": "Walk",
+      "url": "https://media.sketchfab.com/models/f774333ab1b6400288a069b12d582555/80f7ed20c7de47fcad8b5d66ad23ca86/animations/b9040452882d420199f0e87d58efc9cb.bin.gz",
+      "size": 48432,
+      "duration": 0.967,
+      "isLoop": true,
+      "isEnabled": true,
+      "createdAt": "2023-05-27T21:20:12.522097",
+      "updatedAt": "2023-05-27T21:21:10.862711"
+    },
+    {
+      "uid": "9f0d7a34a44545978daeebb0d9a79207",
+      "name": "Run",
+      "url": "https://media.sketchfab.com/models/f774333ab1b6400288a069b12d582555/80f7ed20c7de47fcad8b5d66ad23ca86/animations/9f0d7a34a44545978daeebb0d9a79207.bin.gz",
+      "size": 26704,
+      "duration": 0.633,
+      "isLoop": true,
+      "isEnabled": true,
+      "createdAt": "2023-05-27T21:20:12.518703",
+      "updatedAt": "2023-05-27T21:21:10.862307"
+    },
+    {
+      "uid": "ed72f77c15c74ee2b1c0a1fe67d00087",
+      "name": "Loose",
+      "url": "https://media.sketchfab.com/models/f774333ab1b6400288a069b12d582555/80f7ed20c7de47fcad8b5d66ad23ca86/animations/ed72f77c15c74ee2b1c0a1fe67d00087.bin.gz",
+      "size": 46172,
+      "duration": 0.967,
+      "isLoop": false,
+      "isEnabled": true,
+      "createdAt": "2023-05-27T21:20:12.515380",
+      "updatedAt": "2023-05-27T21:20:12.515388"
+    },
+    {
+      "uid": "95932ba8cadd474c873b57a2453323a3",
+      "name": "Jump",
+      "url": "https://media.sketchfab.com/models/f774333ab1b6400288a069b12d582555/80f7ed20c7de47fcad8b5d66ad23ca86/animations/95932ba8cadd474c873b57a2453323a3.bin.gz",
+      "size": 45604,
+      "duration": 1.133,
+      "isLoop": false,
+      "isEnabled": true,
+      "createdAt": "2023-05-27T21:20:12.512477",
+      "updatedAt": "2023-05-27T21:20:12.512486"
+    },
+    {
+      "uid": "e47dca1e80b549449e382978e5e1cdcb",
+      "name": "Idle",
+      "url": "https://media.sketchfab.com/models/f774333ab1b6400288a069b12d582555/80f7ed20c7de47fcad8b5d66ad23ca86/animations/e47dca1e80b549449e382978e5e1cdcb.bin.gz",
+      "size": 41092,
+      "duration": 1.3,
+      "isLoop": false,
+      "isEnabled": true,
+      "createdAt": "2023-05-27T21:20:12.509096",
+      "updatedAt": "2023-05-27T21:20:12.509107"
+    }
+  ]
+}
